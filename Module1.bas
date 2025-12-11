@@ -160,7 +160,8 @@ Sub Signalement()
         MsgBox "La feuille 'clients top 15' n'existe pas dans Pilotage", vbCritical
         GoTo Fin
     End If
-
+    
+    Call InitialiserRapport
 
 Fin:
     ' Fermer les fichiers sources sans enregistrer
@@ -183,6 +184,8 @@ Sub InitialiserRapport()
     ' Créer la feuille "launcher quotidien"
     Set wsLauncher = wbOutput.Worksheets(1)
     wsLauncher.Name = "launcher quotidien"
+    
+     Call FormaterRapport
     
     
 '    On Error Resume Next
@@ -208,7 +211,7 @@ Sub InitialiserRapport()
 End Sub
 
 Sub FormaterRapport()
-    With wsLauncher.Range("E1:E1")
+    With wsLauncher.Range("A1:A1")
         .Value = "EXTRACTION SIGNALEMENT TSP FAIT LE : " & Format(Now, "dd/mm/yyyy")
     End With
     With wsLauncher.Range("E1:L1")
