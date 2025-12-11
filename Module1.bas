@@ -169,12 +169,45 @@ Sub Signalement()
     ' Déterminer la dernière ligne dans TDB Signalement
     derniereLigneTDB = wsTDB.Cells(wsTDB.Rows.Count, "E").End(xlUp).Row
     
-    ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
+        ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
     wsTDB.Range(wsTDB.Cells(4, 1), wsTDB.Cells(5, 14)).Copy _
         Destination:=wsLauncher.Cells(4, 5)
+  
+    Application.CutCopyMode = False
     
+'    ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
+'    wsTDB.Range(wsTDB.Cells(4, 1), wsTDB.Cells(4, 14)).Copy
+'    wsLauncher.Cells(4, 5).PasteSpecial Paste:=xlPasteAll
+'
+'    wsTDB.Range(wsTDB.Cells(5, 1), wsTDB.Cells(5, 14)).Copy
+'    wsLauncher.Cells(5, 5).PasteSpecial Paste:=xlPasteAll
+'    Application.CutCopyMode = False
+    
+        
+'                    ' Copier les largeurs de colonnes et hauteurs de lignes
+'            For i = 1 To derniereColonneRapportANO
+'                wsRapportANOSortie.Columns(i).ColumnWidth = .Columns(i).ColumnWidth
+'            Next i
+'
+'            ' Copier les hauteurs de lignes
+'            For i = 1 To derniereLigneRapportANO
+'                wsRapportANOSortie.Rows(i).RowHeight = .Rows(i).RowHeight
+'            Next i
+'
     ' Ligne de destination dans launcher quotidien
     ligneDestination = 6
+    
+        ' Parcourir les lignes de TDB Signalement à partir de ligne 6
+    For i = 6 To derniereLigneTDB
+        ' Vérifier si le statut (colonne E) est "A Traiter"
+        If Trim(UCase(wsTDB.Cells(i, 5).Value)) = "A TRAITER" Then
+            ' Copier les données de la ligne (colonnes A à N) vers launcher quotidien (colonne E)
+            wsTDB.Range(wsTDB.Cells(i, 1), wsTDB.Cells(i, 14)).Copy _
+                Destination:=wsLauncher.Cells(ligneDestination, 5)
+                
+            ligneDestination = ligneDestination + 1
+        End If
+    Next i
 
 Fin:
     ' Fermer les fichiers sources sans enregistrer
@@ -201,27 +234,6 @@ Sub InitialiserLauncher()
     
     Call FormaterLauncher
     
-    
-'    On Error Resume Next
-'    Set wsLauncher = ThisWorkbook.Worksheets("launcher quotidien")
-'    On Error GoTo 0
-'
-'    If wsLauncher Is Nothing Then
-'        Set wsLauncher = ThisWorkbook.Worksheets.Add
-'        wsLauncher.Name = "Launcher ANOMALIES"
-'        Call FormaterRapportAnomalies
-'        ligneRapportANO = 12
-'    Else
-'        ' La feuille existe, la nettoyer
-'        wsRapport.Cells.Clear
-'        wsRapport.Cells.ClearFormats
-'        Call FormaterRapportAnomalies
-'
-'        ligneRapportANO = wsRapport.Cells(wsRapport.Rows.Count, 1).End(xlUp).Row + 1
-'        If ligneRapportANO < 12 Then ligneRapportANO = 12
-'    End If
-'    wsRapport.Tab.Color = RGB(139, 0, 0)
-'    compteurConso0Total = 0
 End Sub
 
 Sub FormaterLauncher()
@@ -263,10 +275,13 @@ Sub FormaterLauncher()
 '        .Font.Color = RGB(255, 255, 255)
     End With
     
-'    With wsLauncher.Range("E4:R5")
+    With wsLauncher.Range("E5:R5")
+        .Borders.LineStyle = xlContinuous
+        .HorizontalAlignment = xlCenterAcrossSelection
+        .VerticalAlignment = xlCenter
 '        .Interior.Color = RGB(0, 112, 192)
-'        .Font.Color = RGB(255, 255, 255)
-'    End With
+        .Font.Color = RGB(255, 255, 255)
+    End With
     
     ' Définir les largeurs de colonnes
     wsLauncher.Columns("A:A").ColumnWidth = 35 ' Top 15
