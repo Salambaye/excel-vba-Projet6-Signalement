@@ -161,7 +161,20 @@ Sub Signalement()
         GoTo Fin
     End If
     
-    Call InitialiserRapport
+    ' ------------------  ETAPE 5 : Initialisation du fichier de sortie ---------------------
+    Call InitialiserLauncher
+    
+    
+    ' ------------------  ETAPE 6 : Copie des données dans TDB - Signalement ---------------------
+    ' Déterminer la dernière ligne dans TDB Signalement
+    derniereLigneTDB = wsTDB.Cells(wsTDB.Rows.Count, "E").End(xlUp).Row
+    
+    ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
+    wsTDB.Range(wsTDB.Cells(4, 1), wsTDB.Cells(5, 14)).Copy _
+        Destination:=wsLauncher.Cells(4, 5)
+    
+    ' Ligne de destination dans launcher quotidien
+    ligneDestination = 6
 
 Fin:
     ' Fermer les fichiers sources sans enregistrer
@@ -177,24 +190,25 @@ Fin:
 
 End Sub
 
-Sub InitialiserRapport()
+Sub InitialiserLauncher()
      ' Créer le fichier de sortie
     Set wbOutput = Workbooks.Add
     
     ' Créer la feuille "launcher quotidien"
     Set wsLauncher = wbOutput.Worksheets(1)
     wsLauncher.Name = "launcher quotidien"
+    wsLauncher.Tab.Color = RGB(0, 113, 255)   'RGB(27, 235, 151)
     
-     Call FormaterRapport
+    Call FormaterLauncher
     
     
 '    On Error Resume Next
-'    Set wsRapport = ThisWorkbook.Worksheets("launcher quotidien")
+'    Set wsLauncher = ThisWorkbook.Worksheets("launcher quotidien")
 '    On Error GoTo 0
 '
-'    If wsRapport Is Nothing Then
-'        Set wsRapport = ThisWorkbook.Worksheets.Add
-'        wsRapport.Name = "RAPPORT ANOMALIES"
+'    If wsLauncher Is Nothing Then
+'        Set wsLauncher = ThisWorkbook.Worksheets.Add
+'        wsLauncher.Name = "Launcher ANOMALIES"
 '        Call FormaterRapportAnomalies
 '        ligneRapportANO = 12
 '    Else
@@ -210,16 +224,16 @@ Sub InitialiserRapport()
 '    compteurConso0Total = 0
 End Sub
 
-Sub FormaterRapport()
+Sub FormaterLauncher()
     With wsLauncher.Range("A1:A1")
-        .Value = "EXTRACTION SIGNALEMENT TSP FAIT LE : " & Format(Now, "dd/mm/yyyy")
+        .Value = "EXTRACTION SIGNALEMENT TSP FAIT LE :    " & Format(Now, "dd/mm/yyyy")
     End With
-    With wsLauncher.Range("E1:L1")
+    With wsLauncher.Range("A1:R1")
         .Font.Name = "Calibri"
         .Font.Bold = True
         .Font.Size = 14
         .HorizontalAlignment = xlCenterAcrossSelection
-        .Interior.Color = RGB(139, 0, 0)
+        .Interior.Color = RGB(0, 112, 192)
         .Font.Color = RGB(255, 255, 255)
 '        .Interior.Color = RGB(0, 51, 102)
 '        .Font.Color = RGB(255, 255, 255)
@@ -233,15 +247,15 @@ Sub FormaterRapport()
         .Cells(5, 3).Value = "Ville"
         .Cells(5, 4).Value = "Quartier"
     End With
- 
-    With wsLauncher.Range("A4:R5")
+    
+    With wsLauncher.Range("A5:D5")
         .Font.Name = "Calibri"
         .Font.Bold = True
         .Font.Size = 11
         .Borders.LineStyle = xlContinuous
         .HorizontalAlignment = xlCenter
         .VerticalAlignment = xlCenter
-        .Borders.Weight = xlMedium
+'        .Borders.Weight = xlMedium
     End With
     
     With wsLauncher.Range("A4:D5")
@@ -249,10 +263,10 @@ Sub FormaterRapport()
 '        .Font.Color = RGB(255, 255, 255)
     End With
     
-    With wsLauncher.Range("E4:R5")
-        .Interior.Color = RGB(0, 112, 192)
-        .Font.Color = RGB(255, 255, 255)
-    End With
+'    With wsLauncher.Range("E4:R5")
+'        .Interior.Color = RGB(0, 112, 192)
+'        .Font.Color = RGB(255, 255, 255)
+'    End With
     
     ' Définir les largeurs de colonnes
     wsLauncher.Columns("A:A").ColumnWidth = 35 ' Top 15
