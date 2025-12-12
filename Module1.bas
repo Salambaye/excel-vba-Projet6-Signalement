@@ -111,7 +111,7 @@ Sub Signalement()
   
     On Error Resume Next
     Set wbPilotage = Workbooks.Open(cheminFichierPilotage, ReadOnly:=True)
-     On Error GoTo 0
+    On Error GoTo 0
 
     ' ------------------  ETAPE 4 : Sélection du dossier de sauvegarde du fichier ---------------------
     MsgBox "Choisir le dossier dans lequel le fichier doit être enregistré"
@@ -169,42 +169,82 @@ Sub Signalement()
     ' Déterminer la dernière ligne dans TDB Signalement
     derniereLigneTDB = wsTDB.Cells(wsTDB.Rows.Count, "E").End(xlUp).Row
     
-        ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
-    wsTDB.Range(wsTDB.Cells(4, 1), wsTDB.Cells(5, 14)).Copy _
-        Destination:=wsLauncher.Cells(4, 5)
-  
+    ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
+    wsTDB.Range(wsTDB.Cells(4, 1), wsTDB.Cells(5, 14)).Copy Destination:=wsLauncher.Cells(4, 5)
     Application.CutCopyMode = False
     
-'    ' Copier les en-têtes de Signalement (ligne 4, colonnes A à N) vers launcher quotidien (colonne E)
-'    wsTDB.Range(wsTDB.Cells(4, 1), wsTDB.Cells(4, 14)).Copy
-'    wsLauncher.Cells(4, 5).PasteSpecial Paste:=xlPasteAll
-'
-'    wsTDB.Range(wsTDB.Cells(5, 1), wsTDB.Cells(5, 14)).Copy
-'    wsLauncher.Cells(5, 5).PasteSpecial Paste:=xlPasteAll
-'    Application.CutCopyMode = False
+
     
-        
-'                    ' Copier les largeurs de colonnes et hauteurs de lignes
-'            For i = 1 To derniereColonneRapportANO
-'                wsRapportANOSortie.Columns(i).ColumnWidth = .Columns(i).ColumnWidth
-'            Next i
-'
-'            ' Copier les hauteurs de lignes
-'            For i = 1 To derniereLigneRapportANO
-'                wsRapportANOSortie.Rows(i).RowHeight = .Rows(i).RowHeight
-'            Next i
-'
     ' Ligne de destination dans launcher quotidien
     ligneDestination = 6
     
-        ' Parcourir les lignes de TDB Signalement à partir de ligne 6
+    ' Parcourir les lignes de TDB Signalement à partir de ligne 6
     For i = 6 To derniereLigneTDB
         ' Vérifier si le statut (colonne E) est "A Traiter"
         If Trim(UCase(wsTDB.Cells(i, 5).Value)) = "A TRAITER" Then
             ' Copier les données de la ligne (colonnes A à N) vers launcher quotidien (colonne E)
-            wsTDB.Range(wsTDB.Cells(i, 1), wsTDB.Cells(i, 14)).Copy _
-                Destination:=wsLauncher.Cells(ligneDestination, 5)
+            wsTDB.Range(wsTDB.Cells(i, 1), wsTDB.Cells(i, 14)).Copy Destination:=wsLauncher.Cells(ligneDestination, 5)
+        
+            ' Récupérer les informations pour remplir colonnes A-D
+    ' Rechercher dans Tableau des relèves
+    derniereLigneReleves = wsTableauReleves.Cells(wsTableauReleves.Rows.Count, "J").End(xlUp).Row
+    codePostal = ""
+    ville = ""
+    agence = ""
+            
+    ' Clef commune : UE
+    For j = 3 To derniereLigneReleves
+        If wsTDB.Cells(i, 1).Value = wsTableauReleves.Cells(j, 9).Value Then
                 
+            codePostal = wsTableauReleves.Cells(j, 10).Value ' Colonne J
+            ville = wsTableauReleves.Cells(j, 11).Value ' Colonne K
+            agence = wsTableauReleves.Cells(j, 8).Value ' Colonne H
+                
+        End If
+        '                Exit For
+    Next j
+            
+    ' Rechercher le quartier dans réf quartiers
+    quartier = ""
+    cleRecherche = agence & "|" & codePostal & "|" & ville
+
+    derniereLigneQuartiers = wsRefQuartiers.Cells(wsRefQuartiers.Rows.Count, "A").End(xlUp).Row
+    For j = 2 To derniereLigneQuartiers
+        Dim cleQuartier As String
+        cleQuartier = wsRefQuartiers.Cells(j, 1).Value & "|" & _
+                      wsRefQuartiers.Cells(j, 2).Value & "|" & _
+                      wsRefQuartiers.Cells(j, 3).Value
+
+        If cleQuartier = cleRecherche Then
+            quartier = wsRefQuartiers.Cells(j, 4).Value ' Colonne D
+            Exit For
+        End If
+    Next j
+            
+'     Remplir colonnes B, C, D
+    wsLauncher.Cells(ligneDestination, 2).Value = codePostal
+    wsLauncher.Cells(ligneDestination, 3).Value = ville
+    wsLauncher.Cells(ligneDestination, 4).Value = quartier
+            
+    ' Rechercher dans Top 15 (colonne A = Top 15)
+    ' Raison sociale est en colonne R (18) de launcher quotidien
+'    raisonSociale = wsLauncher.Cells(ligneDestination, 18).Value
+'
+'    ' RECHERCHEV dans clients top 15
+'    On Error Resume Next
+'    top15 = Application.WorksheetFunction.VLookup(raisonSociale, wsClientsTop15.Range("A:B"), 1, False)
+'    On Error GoTo 0
+'
+'    If Not IsError(top15) And top15 <> "" Then
+'        wsLauncher.Cells(ligneDestination, 1).Value = top15
+'
+'        ' Colorer la ligne en rouge
+'        wsLauncher.Range(wsLauncher.Cells(ligneDestination, 1), _
+'                         wsLauncher.Cells(ligneDestination, 18)).Interior.Color = RGB(255, 0, 0)
+'        wsLauncher.Range(wsLauncher.Cells(ligneDestination, 1), _
+'                         wsLauncher.Cells(ligneDestination, 18)).Font.Color = RGB(255, 255, 255)
+'    End If
+'
             ligneDestination = ligneDestination + 1
         End If
     Next i
@@ -217,8 +257,8 @@ Sub Signalement()
 
 Fin:
     ' Fermer les fichiers sources sans enregistrer
-'    If Not wbTDB Is Nothing Then wbTDB.Close SaveChanges:=False
-'    If Not wbPilotage Is Nothing Then wbPilotage.Close SaveChanges:=False
+    '    If Not wbTDB Is Nothing Then wbTDB.Close SaveChanges:=False
+    '    If Not wbPilotage Is Nothing Then wbPilotage.Close SaveChanges:=False
     
     ' Réactiver les paramètres Excel
     Application.ScreenUpdating = True
@@ -230,15 +270,15 @@ Fin:
 End Sub
 
 Sub InitialiserLauncher()
-     ' Créer le fichier de sortie
+    ' Créer le fichier de sortie
     Set wbOutput = Workbooks.Add
     
     ' Créer la feuille "launcher quotidien"
     Set wsLauncher = wbOutput.Worksheets(1)
     wsLauncher.Name = "launcher quotidien"
-    wsLauncher.Tab.Color = RGB(0, 113, 255)   'RGB(27, 235, 151)
+    wsLauncher.Tab.Color = RGB(0, 113, 255)      'RGB(27, 235, 151)
     
-'    Call FormaterLauncher
+    '    Call FormaterLauncher
     
 End Sub
 
@@ -253,8 +293,8 @@ Sub FormaterLauncher()
         .HorizontalAlignment = xlCenterAcrossSelection
         .Interior.Color = RGB(0, 112, 192)
         .Font.Color = RGB(255, 255, 255)
-'        .Interior.Color = RGB(0, 51, 102)
-'        .Font.Color = RGB(255, 255, 255)
+        '        .Interior.Color = RGB(0, 51, 102)
+        '        .Font.Color = RGB(255, 255, 255)
     End With
     
     
@@ -273,12 +313,12 @@ Sub FormaterLauncher()
         .Borders.LineStyle = xlContinuous
         .HorizontalAlignment = xlCenter
         .VerticalAlignment = xlCenter
-'        .Borders.Weight = xlMedium
+        '        .Borders.Weight = xlMedium
     End With
     
     With wsLauncher.Range("A4:D5")
         .Interior.Color = RGB(255, 255, 0)
-'        .Font.Color = RGB(255, 255, 255)
+        '        .Font.Color = RGB(255, 255, 255)
     End With
     
     With wsLauncher.Range("E4:R4")
@@ -287,29 +327,31 @@ Sub FormaterLauncher()
         .VerticalAlignment = xlCenter
     End With
     
-     With wsLauncher.Range("E5:R5")
+    With wsLauncher.Range("E5:R5")
         .Borders.LineStyle = xlContinuous
         .HorizontalAlignment = xlCenterAcrossSelection
         .VerticalAlignment = xlCenter
-'        .Interior.Color = RGB(0, 112, 192)
+        '        .Interior.Color = RGB(0, 112, 192)
         .Font.Color = RGB(255, 255, 255)
     End With
 
     
     ' Définir les largeurs de colonnes
-    wsLauncher.Columns("A:A").ColumnWidth = 35 ' Top 15
-    wsLauncher.Columns("B:B").ColumnWidth = 19 ' Code postal
-    wsLauncher.Columns("C:C").ColumnWidth = 28 ' Ville
-    wsLauncher.Columns("D:D").ColumnWidth = 24 ' Quartier
-    wsLauncher.Columns("E:F").ColumnWidth = 15 ' Code UEX, Code Agence
-    wsLauncher.Columns("G:G").ColumnWidth = 42 ' Dénomination
-    wsLauncher.Columns("H:J").ColumnWidth = 12 ' Numéro, Statut et Code Observation
-    wsLauncher.Columns("K:K").ColumnWidth = 30 ' Libellé observation
-    wsLauncher.Columns("L:L").ColumnWidth = 12 ' Code motif de non résolution
-    wsLauncher.Columns("M:M").ColumnWidth = 30 ' Libellé motif de non résolution
-    wsLauncher.Columns("N:N").ColumnWidth = 12 ' Initiales
-    wsLauncher.Columns("O:O").ColumnWidth = 35 ' Identité
-    wsLauncher.Columns("P:Q").ColumnWidth = 15 ' Date de passage planifiée
-    wsLauncher.Columns("R:R").ColumnWidth = 35 ' Raison sociale
+    wsLauncher.Columns("A:A").ColumnWidth = 35   ' Top 15
+    wsLauncher.Columns("B:B").ColumnWidth = 19   ' Code postal
+    wsLauncher.Columns("C:C").ColumnWidth = 28   ' Ville
+    wsLauncher.Columns("D:D").ColumnWidth = 24   ' Quartier
+    wsLauncher.Columns("E:F").ColumnWidth = 15   ' Code UEX, Code Agence
+    wsLauncher.Columns("G:G").ColumnWidth = 42   ' Dénomination
+    wsLauncher.Columns("H:J").ColumnWidth = 12   ' Numéro, Statut et Code Observation
+    wsLauncher.Columns("K:K").ColumnWidth = 30   ' Libellé observation
+    wsLauncher.Columns("L:L").ColumnWidth = 12   ' Code motif de non résolution
+    wsLauncher.Columns("M:M").ColumnWidth = 30   ' Libellé motif de non résolution
+    wsLauncher.Columns("N:N").ColumnWidth = 12   ' Initiales
+    wsLauncher.Columns("O:O").ColumnWidth = 35   ' Identité
+    wsLauncher.Columns("P:Q").ColumnWidth = 15   ' Date de passage planifiée
+    wsLauncher.Columns("R:R").ColumnWidth = 35   ' Raison sociale
        
 End Sub
+
+
