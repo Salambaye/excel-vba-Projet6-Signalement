@@ -113,27 +113,27 @@ Sub Signalement()
     Set wbPilotage = Workbooks.Open(cheminFichierPilotage, ReadOnly:=True)
     On Error GoTo 0
 
-    ' ------------------  ETAPE 4 : Sélection du dossier de sauvegarde du fichier ---------------------
-    MsgBox "Choisir le dossier dans lequel le fichier doit être enregistré"
-    Set fdlgDossier = Application.FileDialog(msoFileDialogFolderPicker)
-    With fdlgDossier
-        .Title = "Choisir le dossier de sauvegarde du fichier"
-        .AllowMultiSelect = False
-        .InitialFileName = Environ("USERPROFILE") & "\DESKTOP\"
-    End With
-    
-    If fdlgDossier.Show <> -1 Then
-        MsgBox "Sélection du dossier annulée par l'utilisateur.", vbInformation
-        Exit Sub
-    End If
-    
-    dossierSauvegarde = fdlgDossier.SelectedItems(1)
-    
-    ' Vérifier que le dossier existe et est accessible
-    If Dir(dossierSauvegarde, vbDirectory) = "" Then
-        MsgBox "Le dossier sélectionné n'est pas accessible : " & dossierSauvegarde, vbCritical
-        Exit Sub
-    End If
+'    ' ------------------  ETAPE 4 : Sélection du dossier de sauvegarde du fichier ---------------------
+'    MsgBox "Choisir le dossier dans lequel le fichier doit être enregistré"
+'    Set fdlgDossier = Application.FileDialog(msoFileDialogFolderPicker)
+'    With fdlgDossier
+'        .Title = "Choisir le dossier de sauvegarde du fichier"
+'        .AllowMultiSelect = False
+'        .InitialFileName = Environ("USERPROFILE") & "\DESKTOP\"
+'    End With
+'
+'    If fdlgDossier.Show <> -1 Then
+'        MsgBox "Sélection du dossier annulée par l'utilisateur.", vbInformation
+'        Exit Sub
+'    End If
+'
+'    dossierSauvegarde = fdlgDossier.SelectedItems(1)
+'
+'    ' Vérifier que le dossier existe et est accessible
+'    If Dir(dossierSauvegarde, vbDirectory) = "" Then
+'        MsgBox "Le dossier sélectionné n'est pas accessible : " & dossierSauvegarde, vbCritical
+'        Exit Sub
+'    End If
     
     ' Références aux feuilles
     On Error Resume Next
@@ -199,6 +199,10 @@ Sub Signalement()
             codePostal = wsTableauReleves.Cells(j, 10).Value ' Colonne J
             ville = wsTableauReleves.Cells(j, 11).Value ' Colonne K
             agence = wsTableauReleves.Cells(j, 8).Value ' Colonne H
+            
+            If Len(Trim(agence)) = 1 Then
+                agence = "0" & agence
+            End If
                 
         End If
         '                Exit For
