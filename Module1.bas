@@ -213,8 +213,8 @@ Sub Signalement()
 
 Fin:
     ' Fermer les fichiers sources sans enregistrer
-    If Not wbTDB Is Nothing Then wbTDB.Close SaveChanges:=False
-    If Not wbPilotage Is Nothing Then wbPilotage.Close SaveChanges:=False
+'    If Not wbTDB Is Nothing Then wbTDB.Close SaveChanges:=False
+'    If Not wbPilotage Is Nothing Then wbPilotage.Close SaveChanges:=False
     
     ' Réactiver les paramètres Excel
     Application.ScreenUpdating = True
@@ -304,5 +304,15 @@ Sub FormaterLauncher()
     wsLauncher.Columns("B:B").ColumnWidth = 19 ' Code postal
     wsLauncher.Columns("C:C").ColumnWidth = 28 ' Ville
     wsLauncher.Columns("D:D").ColumnWidth = 24 ' Quartier
+    wsLauncher.Columns("E:F").ColumnWidth = 15 ' Code UEX, Code Agence
+    wsLauncher.Columns("G:G").ColumnWidth = 42 ' Dénomination
+    wsLauncher.Columns("H:J").ColumnWidth = 12 ' Numéro, Statut et Code Observation
+    wsLauncher.Columns("K:K").ColumnWidth = 30 ' Libellé observation
+    wsLauncher.Columns("L:L").ColumnWidth = 12 ' Code motif de non résolution
+    wsLauncher.Columns("M:M").ColumnWidth = 30 ' Libellé motif de non résolution
+    wsLauncher.Columns("N:N").ColumnWidth = 12 ' Initiales
+    wsLauncher.Columns("O:O").ColumnWidth = 35 ' Identité
+    wsLauncher.Columns("P:Q").ColumnWidth = 15 ' Date de passage planifiée
+    wsLauncher.Columns("R:R").ColumnWidth = 35 ' Raison sociale
        
 End Sub
