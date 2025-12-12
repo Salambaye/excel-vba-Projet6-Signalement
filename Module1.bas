@@ -208,6 +208,8 @@ Sub Signalement()
             ligneDestination = ligneDestination + 1
         End If
     Next i
+    
+    Call FormaterLauncher
 
 Fin:
     ' Fermer les fichiers sources sans enregistrer
@@ -232,7 +234,7 @@ Sub InitialiserLauncher()
     wsLauncher.Name = "launcher quotidien"
     wsLauncher.Tab.Color = RGB(0, 113, 255)   'RGB(27, 235, 151)
     
-    Call FormaterLauncher
+'    Call FormaterLauncher
     
 End Sub
 
@@ -275,7 +277,21 @@ Sub FormaterLauncher()
 '        .Font.Color = RGB(255, 255, 255)
     End With
     
-    With wsLauncher.Range("E5:R5")
+    Range("E4").UnMerge
+    Range("H4").UnMerge
+    Range("J4").UnMerge
+    Range("L4").UnMerge
+    Range("N4").UnMerge
+    Range("Q4").UnMerge
+    
+    With wsLauncher.Range("E4:R4")
+       
+        .HorizontalAlignment = xlCenterAcrossSelection
+        .VerticalAlignment = xlCenter
+'        .Interior.Color = RGB(0, 112, 192)
+'        .Font.Color = RGB(255, 255, 255)
+    End With
+     With wsLauncher.Range("E5:R5")
         .Borders.LineStyle = xlContinuous
         .HorizontalAlignment = xlCenterAcrossSelection
         .VerticalAlignment = xlCenter
