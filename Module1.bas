@@ -240,7 +240,7 @@ End Sub
 
 Sub FormaterLauncher()
     With wsLauncher.Range("A1:A1")
-        .Value = "EXTRACTION SIGNALEMENT TSP FAIT LE :    " & Format(Now, "dd/mm/yyyy")
+        .Value = "EXTRACTION SIGNALEMENT TSP FAIT LE : " & Format(Now, "dd/mm/yyyy")
     End With
     With wsLauncher.Range("A1:R1")
         .Font.Name = "Calibri"
@@ -277,20 +277,12 @@ Sub FormaterLauncher()
 '        .Font.Color = RGB(255, 255, 255)
     End With
     
-    Range("E4").UnMerge
-    Range("H4").UnMerge
-    Range("J4").UnMerge
-    Range("L4").UnMerge
-    Range("N4").UnMerge
-    Range("Q4").UnMerge
-    
     With wsLauncher.Range("E4:R4")
-       
+        .UnMerge
         .HorizontalAlignment = xlCenterAcrossSelection
         .VerticalAlignment = xlCenter
-'        .Interior.Color = RGB(0, 112, 192)
-'        .Font.Color = RGB(255, 255, 255)
     End With
+    
      With wsLauncher.Range("E5:R5")
         .Borders.LineStyle = xlContinuous
         .HorizontalAlignment = xlCenterAcrossSelection
@@ -298,6 +290,14 @@ Sub FormaterLauncher()
 '        .Interior.Color = RGB(0, 112, 192)
         .Font.Color = RGB(255, 255, 255)
     End With
+    
+'    With wsLauncher.Range("A1:R")
+'        .Borders.LineStyle = xlContinuous
+'        .HorizontalAlignment = xlCenterAcrossSelection
+'        .VerticalAlignment = xlCenter
+''        .Interior.Color = RGB(0, 112, 192)
+'        .Font.Color = RGB(255, 255, 255)
+'    End With
     
     ' Définir les largeurs de colonnes
     wsLauncher.Columns("A:A").ColumnWidth = 35 ' Top 15
