@@ -209,6 +209,10 @@ Sub Signalement()
         End If
     Next i
     
+    With wsLauncher.Range("A1:R" & ligneDestination)
+        .Font.Name = "Calibri"
+    End With
+    
     Call FormaterLauncher
 
 Fin:
@@ -290,14 +294,7 @@ Sub FormaterLauncher()
 '        .Interior.Color = RGB(0, 112, 192)
         .Font.Color = RGB(255, 255, 255)
     End With
-    
-'    With wsLauncher.Range("A1:R")
-'        .Borders.LineStyle = xlContinuous
-'        .HorizontalAlignment = xlCenterAcrossSelection
-'        .VerticalAlignment = xlCenter
-''        .Interior.Color = RGB(0, 112, 192)
-'        .Font.Color = RGB(255, 255, 255)
-'    End With
+
     
     ' Définir les largeurs de colonnes
     wsLauncher.Columns("A:A").ColumnWidth = 35 ' Top 15
