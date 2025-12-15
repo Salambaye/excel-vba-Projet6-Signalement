@@ -1,5 +1,5 @@
 Attribute VB_Name = "Module1"
-'Salamata Nourou MBAYE - 12/12/2025 - Version 1.0
+'Salamata Nourou MBAYE - 15/12/2025 - Version 1.0
 'Projet 6 : Signalements
 
 ' ____________Variables globales pour le fichier de sorie____________________
@@ -232,23 +232,23 @@ Sub Signalement()
             
     ' Rechercher dans Top 15 (colonne A = Top 15)
     ' Raison sociale est en colonne R (18) de launcher quotidien
-'    raisonSociale = wsLauncher.Cells(ligneDestination, 18).Value
-'
-'    ' RECHERCHEV dans clients top 15
-'    On Error Resume Next
-'    top15 = Application.WorksheetFunction.VLookup(raisonSociale, wsClientsTop15.Range("A:B"), 1, False)
-'    On Error GoTo 0
-'
-'    If Not IsError(top15) And top15 <> "" Then
-'        wsLauncher.Cells(ligneDestination, 1).Value = top15
-'
-'        ' Colorer la ligne en rouge
+    raisonSociale = wsLauncher.Cells(ligneDestination, 18).Value
+
+    ' RECHERCHEV dans clients top 15
+    On Error Resume Next
+    top15 = Application.WorksheetFunction.VLookup(raisonSociale, wsClientsTop15.Range("A:B"), 1, False)
+    On Error GoTo 0
+
+    If Not IsError(top15) And top15 <> "" Then
+        wsLauncher.Cells(ligneDestination, 1).Value = top15
+
+        ' Colorer la ligne en rouge
 '        wsLauncher.Range(wsLauncher.Cells(ligneDestination, 1), _
 '                         wsLauncher.Cells(ligneDestination, 18)).Interior.Color = RGB(255, 0, 0)
 '        wsLauncher.Range(wsLauncher.Cells(ligneDestination, 1), _
 '                         wsLauncher.Cells(ligneDestination, 18)).Font.Color = RGB(255, 255, 255)
-'    End If
-'
+    End If
+
             ligneDestination = ligneDestination + 1
         End If
     Next i
