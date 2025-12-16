@@ -1,4 +1,4 @@
-Attribute VB_Name = "Module2"
+Attribute VB_Name = "Module1"
 'Salamata Nourou MBAYE - 16/12/2025 - Version 1.0
 'Projet 6 : Signalements
 
@@ -15,14 +15,14 @@ Dim nomFichierOutput As String
 Dim derniereLigneOutput As Long
 Dim derniereColonneOutput As Long
 
-
 Sub Signalement()
 
     'Optimisation pour accélérer la macro
     Application.ScreenUpdating = False
     Application.EnableEvents = False
-    Application.Calculation = xlCalculationManual
     Application.DisplayAlerts = False
+    Application.Calculation = xlCalculationManual
+    Application.AutomationSecurity = msoAutomationSecurityLow
 
     '------------------- ETAPE 1 : Déclaration des variables --------------------------------
     Dim wbTDB As Workbook
@@ -43,6 +43,7 @@ Sub Signalement()
     Dim cheminFichierTDB As String
     Dim cheminFichierPilotage As String
     Dim fdlg As FileDialog
+    Dim dossierSauvegarde As String
     
     ' Dictionnaires pour optimiser les recherches
     Dim dictReleves As Object
@@ -113,15 +114,41 @@ Sub Signalement()
         End If
     End If
     
-    ' Ouvrir les fichiers sources
+    
+    ' ------------------  ETAPE 4 : Sélection du dossier de sauvegarde du fichier ---------------------
+    MsgBox "Choisir le dossier dans lequel le fichier doit être enregistré"
+    Set fdlgDossier = Application.FileDialog(msoFileDialogFolderPicker)
+    With fdlgDossier
+        .Title = "Choisir le dossier de sauvegarde du fichier"
+        .AllowMultiSelect = False
+        .InitialFileName = Environ("USERPROFILE") & "\DESKTOP\"
+    End With
+
+    If fdlgDossier.Show <> -1 Then
+        MsgBox "Sélection du dossier annulée par l'utilisateur.", vbInformation
+        Exit Sub
+    End If
+
+    dossierSauvegarde = fdlgDossier.SelectedItems(1)
+
+    ' Vérifier que le dossier existe et est accessible
+    If Dir(dossierSauvegarde, vbDirectory) = "" Then
+        MsgBox "Le dossier sélectionné n'est pas accessible : " & dossierSauvegarde, vbCritical
+        Exit Sub
+    End If
+    
+    
+    
+    ' Ouvrir les fichiers sources (UpdateLinks:=0 désactive la boîte de dialogue de mise à jour)
     On Error Resume Next
-    Set wbTDB = Workbooks.Open(cheminFichierTDB, ReadOnly:=True)
+    Set wbTDB = Workbooks.Open(Filename:=cheminFichierTDB, ReadOnly:=True, UpdateLinks:=0, IgnoreReadOnlyRecommended:=True)
     If Err.Number <> 0 Then
         MsgBox "Erreur lors de l'ouverture de TDB_INDICATEURS : " & Err.Description, vbCritical
         GoTo Fin
     End If
+    Err.Clear
     
-    Set wbPilotage = Workbooks.Open(cheminFichierPilotage, ReadOnly:=True)
+    Set wbPilotage = Workbooks.Open(Filename:=cheminFichierPilotage, ReadOnly:=True, UpdateLinks:=0, IgnoreReadOnlyRecommended:=True)
     If Err.Number <> 0 Then
         MsgBox "Erreur lors de l'ouverture de Pilotage : " & Err.Description, vbCritical
         GoTo Fin
@@ -154,29 +181,7 @@ Sub Signalement()
         GoTo Fin
     End If
     
-    
-        ' ------------------  ETAPE 4 : Sélection du dossier de sauvegarde du fichier ---------------------
-    MsgBox "Choisir le dossier dans lequel le fichier doit être enregistré"
-    Set fdlgDossier = Application.FileDialog(msoFileDialogFolderPicker)
-    With fdlgDossier
-        .Title = "Choisir le dossier de sauvegarde du fichier"
-        .AllowMultiSelect = False
-        .InitialFileName = Environ("USERPROFILE") & "\DESKTOP\"
-    End With
 
-    If fdlgDossier.Show <> -1 Then
-        MsgBox "Sélection du dossier annulée par l'utilisateur.", vbInformation
-        Exit Sub
-    End If
-
-    dossierSauvegarde = fdlgDossier.SelectedItems(1)
-
-    ' Vérifier que le dossier existe et est accessible
-    If Dir(dossierSauvegarde, vbDirectory) = "" Then
-        MsgBox "Le dossier sélectionné n'est pas accessible : " & dossierSauvegarde, vbCritical
-        Exit Sub
-    End If
-    
     
     ' ------------------  ETAPE 5 : Charger les données de référence dans les dictionnaires ---------------------
     ' Charger Tableau des relèves
@@ -188,9 +193,9 @@ Sub Signalement()
             If Len(agence) = 1 Then agence = "0" & agence
             
             dictReleves.Add ue, Array( _
-                Trim(CStr(wsTableauReleves.Cells(j, 10).Value)), _
-                Trim(CStr(wsTableauReleves.Cells(j, 11).Value)), _
-                agence)
+                               Trim(CStr(wsTableauReleves.Cells(j, 10).Value)), _
+                            Trim(CStr(wsTableauReleves.Cells(j, 11).Value)), _
+                            agence)
         End If
     Next j
     
@@ -249,9 +254,8 @@ Sub Signalement()
                 ville = dictReleves(ue)(1)
                 agence = dictReleves(ue)(2)
             Else
-                 codePostal = "#N/A"
+                codePostal = "#N/A"
                 ville = "#N/A"
-                agence = "#N/A"
             End If
             
             ' Rechercher le quartier
@@ -260,6 +264,8 @@ Sub Signalement()
                 cleRecherche = agence & "|" & codePostal & "|" & ville
                 If dictQuartiers.Exists(cleRecherche) Then
                     quartier = dictQuartiers(cleRecherche)
+                Else
+                    quartier = "#N/A"
                 End If
             End If
             
@@ -400,19 +406,25 @@ Sub FormaterLauncher()
        
 End Sub
 
-
 Sub SauvegarderLauncher()
-
+    
+    ' Désactiver le calcul automatique pour éviter l'erreur de ressources
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+    
     ' CRÉER LE FICHIER DE SORTIE
     
-    Set wbOutput = Workbooks.Add
+    Application.Calculation = xlCalculationManual
+    Set wbOutput = Workbooks.Add(xlWBATWorksheet)
+    wbOutput.Application.Calculation = xlCalculationManual
+
     Set wsOutput = wbOutput.Worksheets(1)
     wsOutput.Name = "launcher quotidien"
-    wsOutput.Tab.Color = RGB(0, 113, 255) 'Couleur de l'onglet
+    wsOutput.Tab.Color = RGB(0, 113, 255)        'Couleur de l'onglet
     
     ' S'assurer qu'on a bien la référence à la feuille launcher quotidien source
     On Error Resume Next
-    Set wsLauncher = ThisWorkbook.Worksheets("launcher quotidien")
+    Set wsLauncher = wbLauncher.Worksheets("launcher quotidien")
     On Error GoTo 0
     
     ' Copier les données de la feuille 'launcher quotidien' source
@@ -442,7 +454,7 @@ Sub SauvegarderLauncher()
             
             ' Figer les volets
             wsOutput.Activate
-            Application.GoTo wsOutput.Range("A12")
+            Application.GoTo wsOutput.Range("A6")
             ActiveWindow.FreezePanes = True
             Application.GoTo wsOutput.Range("A1")
         End With
@@ -469,7 +481,14 @@ Sub SauvegarderLauncher()
     Application.DisplayAlerts = True
     
     ' Sauvegarder le fichier launcher quotidien
-    On Error Resume Next
+
+    ' Supprimer toutes les formules avant de sauvegarder
+    If derniereLigneOutput > 0 Then
+        With wsOutput.Range("A1:R" & derniereLigneOutput)
+            .Value = .Value                      ' Convertir les formules en valeurs
+        End With
+    End If
+
     wbOutput.SaveAs cheminOutput, xlOpenXMLWorkbook
     
     If Err.Number <> 0 Then
@@ -481,6 +500,10 @@ Sub SauvegarderLauncher()
     
     ' Fermer le fichier launcher quotidien
     wbOutput.Close False
+    
+    ' Réactiver les paramètres
+    Application.Calculation = xlCalculationManual ' Garder manuel jusqu'à la fin
+    Application.ScreenUpdating = True
 
 End Sub
 
@@ -498,4 +521,5 @@ Sub MettreEnAvantFeuilleMacro()                  'Afficher uniquement la macro e
         End If
     Next ws
 End Sub
+
 
