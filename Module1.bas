@@ -139,7 +139,7 @@ Sub Signalement()
     
     
     
-    ' Ouvrir les fichiers sources (UpdateLinks:=0 désactive la boîte de dialogue de mise à jour)
+    ' -------- Ouvrir les fichiers sources (UpdateLinks:=0 désactive la boîte de dialogue de mise à jour)---------------
     On Error Resume Next
     Set wbTDB = Workbooks.Open(Filename:=cheminFichierTDB, ReadOnly:=True, UpdateLinks:=0, IgnoreReadOnlyRecommended:=True)
     If Err.Number <> 0 Then
@@ -181,9 +181,12 @@ Sub Signalement()
         GoTo Fin
     End If
     
+    ' ------------------  ETAPE 5 : Initialisation du fichier de sortie ---------------------
+    Call InitialiserLauncher
+    
 
     
-    ' ------------------  ETAPE 5 : Charger les données de référence dans les dictionnaires ---------------------
+    ' ------------------  ETAPE 6 : Charger les données de référence dans les dictionnaires ---------------------
     ' Charger Tableau des relèves
     derniereLigneReleves = wsTableauReleves.Cells(wsTableauReleves.Rows.Count, "J").End(xlUp).Row
     For j = 3 To derniereLigneReleves
@@ -219,8 +222,7 @@ Sub Signalement()
         End If
     Next j
     
-    ' ------------------  ETAPE 6 : Initialisation du fichier de sortie ---------------------
-    Call InitialiserLauncher
+
     
     ' ------------------  ETAPE 7 : Copie des données dans TDB - Signalement ---------------------
     ' Déterminer la dernière ligne dans TDB Signalement
@@ -302,7 +304,9 @@ Sub Signalement()
     
     nomFichierOutput = "pilotage_signalements_modèle.xlsx"
     cheminOutput = dossierSauvegarde & "\" & nomFichierOutput
-    Call SauvegarderLauncher
+    wbLauncher.SaveAs cheminOutput
+    wbLauncher.Close
+
     Call MettreEnAvantFeuilleMacro
     
     MsgBox "Traitement terminé ! " & (ligneDestination - 6) & " ligne(s) traitée(s).", vbInformation
@@ -404,107 +408,6 @@ Sub FormaterLauncher()
     wsLauncher.Columns("P:Q").ColumnWidth = 15
     wsLauncher.Columns("R:R").ColumnWidth = 35
        
-End Sub
-
-Sub SauvegarderLauncher()
-    
-    ' Désactiver le calcul automatique pour éviter l'erreur de ressources
-    Application.Calculation = xlCalculationManual
-    Application.ScreenUpdating = False
-    
-    ' CRÉER LE FICHIER DE SORTIE
-    
-    Application.Calculation = xlCalculationManual
-    Set wbOutput = Workbooks.Add(xlWBATWorksheet)
-    wbOutput.Application.Calculation = xlCalculationManual
-
-    Set wsOutput = wbOutput.Worksheets(1)
-    wsOutput.Name = "launcher quotidien"
-    wsOutput.Tab.Color = RGB(0, 113, 255)        'Couleur de l'onglet
-    
-    ' S'assurer qu'on a bien la référence à la feuille launcher quotidien source
-    On Error Resume Next
-    Set wsLauncher = wbLauncher.Worksheets("launcher quotidien")
-    On Error GoTo 0
-    
-    ' Copier les données de la feuille 'launcher quotidien' source
-    If Not wsLauncher Is Nothing And Application.WorksheetFunction.CountA(wsLauncher.UsedRange) > 0 Then
-        With wsLauncher
-            On Error Resume Next
-            derniereLigneOutput = .Cells.Find("*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
-            derniereColonneOutput = .Cells.Find("*", SearchOrder:=xlByColumns, SearchDirection:=xlPrevious).Column
-            On Error GoTo 0
-            If derniereLigneOutput = 0 Then derniereLigneOutput = 1
-            If derniereColonneOutput = 0 Then derniereColonneOutput = 1
-
-            ' Copier toutes les données du fichier (AVEC formatage)
-            .Range(.Cells(1, 1), .Cells(derniereLigneOutput, derniereColonneOutput)).Copy wsOutput.Range("A1")
-            Application.CutCopyMode = False      ' Nettoie après la copie
-            
-            
-            ' Copier les largeurs de colonnes et hauteurs de lignes
-            For i = 1 To derniereColonneOutput
-                wsOutput.Columns(i).ColumnWidth = .Columns(i).ColumnWidth
-            Next i
-            
-            ' Copier les hauteurs de lignes
-            For i = 1 To derniereLigneOutput
-                wsOutput.Rows(i).RowHeight = .Rows(i).RowHeight
-            Next i
-            
-            ' Figer les volets
-            wsOutput.Activate
-            Application.GoTo wsOutput.Range("A6")
-            ActiveWindow.FreezePanes = True
-            Application.GoTo wsOutput.Range("A1")
-        End With
-        
-        'Formater la feuille (Uniquement la police et sa taille)
-        With wsOutput
-            If derniereLigneOutput > 1 Then
-                With .Range("A1:R" & derniereLigneOutput)
-                    .Font.Name = "Calibri"
-                End With
-            End If
-        End With
-        
-    Else
-        ' Si pas de feuille launcher quotidien source, créer des en-têtes par défaut
-        wsOutput.Range("A1").Value = "ERREUR: Feuille launcher quotidien source non trouvée"
-    End If
-    
-    ' Supprimer les autres feuilles du classeur launcher quotidien de sortie
-    Application.DisplayAlerts = False
-    For Each wsFinal In wbOutput.Worksheets
-        If wsFinal.Name <> "launcher quotidien" Then wsFinal.Delete
-    Next wsFinal
-    Application.DisplayAlerts = True
-    
-    ' Sauvegarder le fichier launcher quotidien
-
-    ' Supprimer toutes les formules avant de sauvegarder
-    If derniereLigneOutput > 0 Then
-        With wsOutput.Range("A1:R" & derniereLigneOutput)
-            .Value = .Value                      ' Convertir les formules en valeurs
-        End With
-    End If
-
-    wbOutput.SaveAs cheminOutput, xlOpenXMLWorkbook
-    
-    If Err.Number <> 0 Then
-        MsgBox "Erreur lors de la sauvegarde du fichier launcher quotidien : " & Err.Description, vbCritical
-        wbOutput.Close False
-        Exit Sub
-    End If
-    On Error GoTo 0
-    
-    ' Fermer le fichier launcher quotidien
-    wbOutput.Close False
-    
-    ' Réactiver les paramètres
-    Application.Calculation = xlCalculationManual ' Garder manuel jusqu'à la fin
-    Application.ScreenUpdating = True
-
 End Sub
 
 Sub MettreEnAvantFeuilleMacro()                  'Afficher uniquement la macro et masquer les autres onglets
