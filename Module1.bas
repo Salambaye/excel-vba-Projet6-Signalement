@@ -1,5 +1,5 @@
 Attribute VB_Name = "Module1"
-'Salamata Nourou MBAYE - 16/12/2025 - Version 1.0
+'Salamata Nourou MBAYE - 19/12/2025 - Version 1.0
 'Projet 6 : Signalements
 
 ' ____________Variables globales pour le fichier de sortie____________________
@@ -22,7 +22,6 @@ Sub Signalement()
     Application.EnableEvents = False
     Application.DisplayAlerts = False
     Application.Calculation = xlCalculationManual
-    Application.AutomationSecurity = msoAutomationSecurityLow
 
     '------------------- ETAPE 1 : Déclaration des variables --------------------------------
     Dim wbTDB As Workbook
@@ -302,14 +301,14 @@ Sub Signalement()
     
     ' _______________ETAPE 8 : Créer le fichier de sortie ___________________________
     
-    nomFichierOutput = "pilotage_signalements_modèle.xlsx"
+    nomFichierOutput = "Rapport d'analyse du pilotage signalements modèle.xlsx"
     cheminOutput = dossierSauvegarde & "\" & nomFichierOutput
     wbLauncher.SaveAs cheminOutput
     wbLauncher.Close
 
     Call MettreEnAvantFeuilleMacro
     
-    MsgBox "Traitement terminé ! " & (ligneDestination - 6) & " ligne(s) traitée(s).", vbInformation
+    MsgBox "Traitement terminé ! " & (ligneDestination - 6) & " lignes traitées.", vbInformation
     
     ' Ouvrir le rapport
     Dim MonApplication As Object
