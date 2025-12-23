@@ -390,6 +390,14 @@ Sub FormaterLauncher()
         .VerticalAlignment = xlCenter
         .Font.Color = RGB(255, 255, 255)
     End With
+    
+    ' Figer les volets sur la ligne 6 (pour figer les lignes 1 à 5)
+    With wsLauncher
+        .Activate
+        .Range("A6").Select                     ' Sélectionne la ligne à figer
+        ActiveWindow.FreezePanes = True          ' Fige à partir de là
+        Application.GoTo .Range("A1")
+    End With
 
     ' Définir les largeurs de colonnes
     wsLauncher.Columns("A:A").ColumnWidth = 35
